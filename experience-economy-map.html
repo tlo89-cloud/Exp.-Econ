@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experience Economy Map</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #222222;
+    --border2: #2e2e2e;
+    --text: #e8e8e8;
+    --text2: #888888;
+    --text3: #555555;
+    --accent: #c8f135;
+    --accent2: #8fbf22;
+
+    --public: #4ade80;
+    --private: #60a5fa;
+    --pe: #a78bfa;
+    --venture: #fb923c;
+    --notinvest: #6b7280;
+    --ref: #6b7280;
+
+    --dominant: #c8f135;
+    --challenger: #60a5fa;
+    --niche: #888888;
+
+    --high: #c8f135;
+    --medium: #fb923c;
+    --low: #ef4444;
+
+    --largecap: #e8e8e8;
+    --midmarket: #a0a0a0;
+    --growth: #60a5fa;
+    --early: #a78bfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: auto;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+  .logo-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--text2);
+    text-transform: uppercase;
+  }
+  .logo-sub {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: var(--text3); color: var(--text); }
+  .filter-btn.active { border-color: currentColor; }
+  .filter-btn .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  .filter-btn[data-filter="Public Equity"].active { color: var(--public); }
+  .filter-btn[data-filter="PE / Private Fund"].active { color: var(--pe); }
+  .filter-btn[data-filter="Venture"].active { color: var(--venture); }
+  .filter-btn[data-filter="Not Investable / Reference Only"].active { color: var(--ref); }
+
+  .filter-btn[data-filter="Public Equity"] .dot { background: var(--public); }
+  .filter-btn[data-filter="PE / Private Fund"] .dot { background: var(--pe); }
+  .filter-btn[data-filter="Venture"] .dot { background: var(--venture); }
+  .filter-btn[data-filter="Not Investable / Reference Only"] .dot { background: var(--ref); }
+
+  .search-wrap {
+    position: relative;
+  }
+  .search-input {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 5px 10px 5px 28px;
+    width: 180px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--text3); }
+  .search-input::placeholder { color: var(--text3); }
+  .search-icon {
+    position: absolute;
+    left: 8px; top: 50%; transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 11px;
+    pointer-events: none;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+  }
+  .count-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+  }
+  .count-badge span { color: var(--accent); font-weight: 500; }
+
+  /* LAYER TABS */
+  .layer-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    background: var(--bg);
+    overflow-x: auto;
+    position: sticky;
+    top: 57px;
+    z-index: 90;
+  }
+  .layer-tab {
+    padding: 10px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .layer-tab:hover { color: var(--text2); }
+  .layer-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* LEGEND BAR */
+  .legend-bar {
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .legend-sep { color: var(--border2); }
+
+  /* GRID LAYOUT */
+  .grid-container {
+    padding: 0;
+    overflow-x: auto;
+  }
+
+  .segment-section {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    min-width: 900px;
+  }
+
+  .segment-header-col {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    padding: 16px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+  }
+
+  .layer-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+
+  .segment-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    line-height: 1.3;
+  }
+
+  .segment-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  .companies-col {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: flex-start;
+  }
+
+  .segment-header-col { border-bottom: 1px solid var(--border); }
+
+  /* COMPANY CHIP */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.12s;
+    max-width: 220px;
+    position: relative;
+  }
+  .chip:hover {
+    border-color: var(--border);
+    background: var(--surface2);
+    transform: translateY(-1px);
+  }
+  .chip.hidden { display: none; }
+
+  .chip-initials {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    background: var(--surface2);
+    color: var(--text2);
+    padding: 2px 4px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .chip-name {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 130px;
+  }
+
+  .chip-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .chip-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.06em;
+    padding: 1px 4px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  /* Access color coding */
+  .chip[data-access="Public Equity"] .chip-dot { background: var(--public); }
+  .chip[data-access="PE / Private Fund"] .chip-dot { background: var(--pe); }
+  .chip[data-access="Venture"] .chip-dot { background: var(--venture); }
+  .chip[data-access="Not Investable / Reference Only"] .chip-dot { background: var(--ref); }
+
+  .chip[data-access="Public Equity"] .chip-badge { background: rgba(74,222,128,0.12); color: var(--public); }
+  .chip[data-access="PE / Private Fund"] .chip-badge { background: rgba(167,139,250,0.12); color: var(--pe); }
+  .chip[data-access="Venture"] .chip-badge { background: rgba(251,146,60,0.12); color: var(--venture); }
+  .chip[data-access="Not Investable / Reference Only"] .chip-badge { background: rgba(107,114,128,0.12); color: var(--ref); }
+
+  /* DETAIL PANEL */
+  .detail-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
+  }
+  .detail-overlay.open { display: block; }
+
+  .detail-panel {
+    position: fixed;
+    right: 0; top: 0; bottom: 0;
+    width: 420px;
+    background: var(--surface);
+    border-left: 1px solid var(--border2);
+    overflow-y: auto;
+    z-index: 201;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+  }
+  .detail-panel.open { transform: translateX(0); }
+
+  .detail-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: var(--surface);
+    z-index: 10;
+  }
+
+  .detail-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none; color: var(--text3);
+    font-size: 18px; cursor: pointer; line-height: 1;
+    padding: 4px;
+    transition: color 0.15s;
+  }
+  .detail-close:hover { color: var(--text); }
+
+  .detail-name {
+    font-size: 18px; font-weight: 600; letter-spacing: -0.02em;
+    color: var(--text); margin-bottom: 6px; padding-right: 28px;
+  }
+
+  .detail-meta {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .meta-pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 7px; border-radius: 3px;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+  }
+  .meta-pill.access-pub { border-color: rgba(74,222,128,0.3); color: var(--public); background: rgba(74,222,128,0.06); }
+  .meta-pill.access-pe { border-color: rgba(167,139,250,0.3); color: var(--pe); background: rgba(167,139,250,0.06); }
+  .meta-pill.access-vc { border-color: rgba(251,146,60,0.3); color: var(--venture); background: rgba(251,146,60,0.06); }
+  .meta-pill.access-ref { border-color: rgba(107,114,128,0.3); color: var(--ref); background: rgba(107,114,128,0.06); }
+
+  .detail-subseg {
+    font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text3);
+  }
+
+  .detail-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  .detail-section-label {
+    font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 5px;
+  }
+
+  .detail-description {
+    font-size: 13px; line-height: 1.6; color: var(--text2);
+  }
+
+  .detail-block {
+    background: var(--surface2); border-radius: 6px;
+    padding: 12px 14px; border: 1px solid var(--border);
+  }
+  .detail-block .label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+  .detail-block .value { font-size: 12px; line-height: 1.55; color: var(--text); }
+
+  .detail-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+
+  .detail-stat {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 5px; padding: 8px 10px;
+  }
+  .detail-stat .stat-label { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+  .detail-stat .stat-value { font-size: 12px; font-weight: 500; color: var(--text); }
+  .detail-stat .stat-value.dominant { color: var(--dominant); }
+  .detail-stat .stat-value.challenger { color: var(--challenger); }
+  .detail-stat .stat-value.niche { color: var(--niche); }
+  .detail-stat .stat-value.high-conf { color: var(--high); }
+  .detail-stat .stat-value.med-conf { color: var(--medium); }
+  .detail-stat .stat-value.low-conf { color: var(--low); }
+
+  /* NO RESULTS */
+  .no-results {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    display: none;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* SECTION DIVIDER for layer groups */
+  .layer-group-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text3);
+    position: sticky;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .layer-group-header::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .layer-group-header .layer-num {
+    font-size: 9px;
+    color: var(--accent);
+    margin-right: 2px;
+  }
+
+  .empty-segment { display: none; }
+
+  @media (max-width: 700px) {
+    .segment-section { grid-template-columns: 130px 1fr; }
+    .detail-panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <span class="logo-title">Trevor & Nishal</span>
+    <span class="logo-sub">Experience Economy Map</span>
+  </div>
+
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-filter="Public Equity">
+      <span class="dot"></span> Public Equity
+    </button>
+    <button class="filter-btn active" data-filter="PE / Private Fund">
+      <span class="dot"></span> PE / Private
+    </button>
+    <button class="filter-btn active" data-filter="Venture">
+      <span class="dot"></span> Venture
+    </button>
+    <button class="filter-btn active" data-filter="Not Investable / Reference Only">
+      <span class="dot"></span> Reference Only
+    </button>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input class="search-input" type="text" id="searchInput" placeholder="Search companies...">
+  </div>
+
+  <div class="header-right">
+    <span class="count-badge" id="countBadge"><span id="visibleCount">134</span> / 134 companies</span>
+  </div>
+</div>
+
+<!-- LAYER TABS -->
+<div class="layer-tabs" id="layerTabs">
+  <div class="layer-tab active" data-layer="all">All Layers</div>
+  <div class="layer-tab" data-layer="0">1 · Content & IP</div>
+  <div class="layer-tab" data-layer="1">2 · Physical Infrastructure</div>
+  <div class="layer-tab" data-layer="2">3 · Operators & Distribution</div>
+  <div class="layer-tab" data-layer="3">4 · Service Providers</div>
+  <div class="layer-tab" data-layer="4">5 · Technology Enablers</div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend-bar">
+  <div class="legend-item"><span class="legend-dot" style="background:var(--public)"></span> Public Equity</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--pe)"></span> PE / Private</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--venture)"></span> Venture</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--ref)"></span> Reference Only</div>
+  <span class="legend-sep">·</span>
+  <div class="legend-item"><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dominant)">■</span> Dominant</div>
+  <div class="legend-item"><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--challenger)">■</span> Challenger</div>
+  <div class="legend-item"><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--niche)">■</span> Niche</div>
+  <span class="legend-sep">·</span>
+  <span style="font-family:'DM Mono',monospace;font-size:10px">Click any chip to see full profile</span>
+</div>
+
+<!-- GRID -->
+<div class="grid-container" id="gridContainer"></div>
+<div class="no-results" id="noResults">No companies match your filters.</div>
+
+<!-- DETAIL OVERLAY + PANEL -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <button class="detail-close" onclick="closeDetail()">✕</button>
+    <div class="detail-name" id="dName"></div>
+    <div class="detail-meta" id="dMeta"></div>
+    <div class="detail-subseg" id="dSubseg"></div>
+  </div>
+  <div class="detail-body" id="dBody"></div>
+</div>
+
+<script>
+const DB = {"1. Content & IP":[{"Company Name":"FIFA","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Global football governing body controlling World Cup IP.","Why is this company important?":"Owns the most valuable episodic sports event IP.","Macro Tailwind":"Mega-events concentrate global sponsorship and media demand.","Thesis":"Event scarcity drives outsized revenue spikes.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Formula One Group","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Global motorsport league controlling F1 races.","Why is this company important?":"Premium global IP with controlled calendar inventory.","Macro Tailwind":"Format-driven fandom growth increases monetization per race.","Thesis":"Scarce global event inventory drives pricing power in rights and sponsorship.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"LaLiga","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Spain's top professional football league, home to Real Madrid and Barcelona; global broadcast rights in 180+ countries.","Why is this company important?":"Second most-watched football league globally; CVC invested €2.7B for 10% stake in commercial unit in 2022.","Macro Tailwind":"Global soccer consumption growth; international rights inflation driven by streaming competition.","Thesis":"Scarce global football IP with structural media rights escalator and institutional capital entering the asset class.","Ownership Status":"Private (league-owned)","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Major League Baseball","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Professional baseball league controlling teams and centralized media rights.","Why is this company important?":"Controls long-season live inventory with national and local rights monetization.","Macro Tailwind":"Regional sports rights restructuring and streaming distribution shifts.","Thesis":"High game volume plus rights renegotiation creates repricing and DTC optionality.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Major League Soccer","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Top-tier US and Canadian professional soccer league with 30 franchises and exclusive Apple TV media deal.","Why is this company important?":"Fastest-growing major US league by franchise value; 2026 FIFA World Cup catalyst; average franchise now worth $721M.","Macro Tailwind":"2026 World Cup hosted in North America drives soccer adoption; Apple TV deal creates DTC distribution model.","Thesis":"Soccer demographic tailwind and World Cup catalyst reprices franchise values over next 3-5 years.","Ownership Status":"Private (league-owned)","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Manchester City Football Club","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Premier League football club operating live matches and global brand.","Why is this company important?":"Global club IP monetizing matchday media and sponsorship.","Macro Tailwind":"Top European clubs globalize fan bases via digital distribution.","Thesis":"Elite clubs compound franchise value through global sponsorship scale.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"NASCAR","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"US premier stock car racing series; signed 7-year $7.7B media rights deal with Fox, NBC, Amazon, and TNT through 2031.","Why is this company important?":"One of the largest US sports media deals by total value; highly loyal fanbase with strong sponsor integration.","Macro Tailwind":"Live motorsport retains appointment viewing; new media partners Amazon and TNT expand digital reach.","Thesis":"Long-term contracted rights revenue provides earnings visibility; loyal fanbase resilient across economic cycles.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"NBA","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Global basketball league with centralized media rights.","Why is this company important?":"Internationally scalable sports IP with cultural reach.","Macro Tailwind":"Global sports consumption grows via streaming and social.","Thesis":"Globalizable IP compounds value as distribution expands.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"National Football League","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"American football league controlling teams and centralized rights.","Why is this company important?":"Scarce premium sports IP with centralized rights leverage.","Macro Tailwind":"Streaming bidders compete for live sports rights.","Thesis":"Rights scarcity drives escalating contracts under centralized control.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"National Hockey League","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Professional hockey league with centralized national media rights.","Why is this company important?":"Premium winter live sports inventory with stable broadcast demand.","Macro Tailwind":"Streaming bidders seek year-round live sports programming.","Thesis":"Scarce seasonal inventory supports stable rights value amid distribution shifts.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Premier League","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Top English football league with global rights.","Why is this company important?":"One of the most valuable recurring live rights packages.","Macro Tailwind":"International rights growth supports sports inflation.","Thesis":"Global demand for top-tier football drives durable rights inflation.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"UEFA Champions League","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Europe's premier club football competition, broadcast in 200+ territories with multi-billion dollar rights deals.","Why is this company important?":"Most-watched annual sporting club competition globally; rights packages consistently set records each cycle.","Macro Tailwind":"Streaming platforms competing for live sports rights; UEFA Euro 2024 pulled $1.5B+ in broadcast fees alone.","Thesis":"Appointment-viewing live IP with irreplaceable scarcity — no substitute for the Champions League final.","Ownership Status":"Private (governing body)","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"UFC","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Global mixed martial arts league and event IP owner.","Why is this company important?":"High-frequency premium event IP with media leverage.","Macro Tailwind":"Combat sports retain strong live engagement.","Thesis":"Event cadence compounds media and sponsorship value.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"WWE","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Major Sports Leagues)","Brief Description":"Sports entertainment IP with live touring and media distribution.","Why is this company important?":"Hybrid live and media IP with global monetization.","Macro Tailwind":"Scripted live IP travels well across markets.","Thesis":"Owned IP monetizes across live gates rights and licensing.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Angel City FC","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Emerging & High-Growth Leagues)","Brief Description":"NWSL franchise; most valuable women's soccer club in the US at $335M; $29 sponsorship revenue per social follower.","Why is this company important?":"Proof of concept for women's sports franchise as institutional asset; outperforms 15 MLS and 25 MLB teams in sponsorship revenue per game.","Macro Tailwind":"NWSL franchise values up 179% since 2023; media rights secured 40x increase in annual value.","Thesis":"Leading brand in fastest-appreciating US sports asset class; monetization benchmarks rival established men's leagues.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Feld Motor Sports","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Emerging & High-Growth Leagues)","Brief Description":"Operator of Supercross and Monster Jam live motorsports events.","Why is this company important?":"Owns repeatable touring motorsports IP with broadcast tie-ins.","Macro Tailwind":"Motorsports maintain durable live attendance and sponsor engagement.","Thesis":"Controlled touring IP monetizes via tickets sponsorship and media.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"Kansas City Current","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Emerging & High-Growth Leagues)","Brief Description":"NWSL franchise; first purpose-built women's soccer stadium in the world (CPKC Stadium, $140M privately financed).","Why is this company important?":"Sets financial template for women's sports: stadium ownership drives $41M local revenue — highest in NWSL.","Macro Tailwind":"Purpose-built venue ownership model captures all revenue streams; women's sports sponsorship up 44% league-wide.","Thesis":"Venue ownership unlocks compounding revenue streams unavailable to tenant clubs; replicable model for the league.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"LIV Golf","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Emerging & High-Growth Leagues)","Brief Description":"Team-based global golf league operating live tournament events.","Why is this company important?":"Introduced new capital and format innovation into global golf.","Macro Tailwind":"Sovereign capital reshapes professional sports league economics.","Thesis":"Alternative league structures challenge incumbents and inflate rights valuations.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"Major League Pickleball","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Emerging & High-Growth Leagues)","Brief Description":"Franchised professional pickleball league.","Why is this company important?":"Participatory sport converted into spectator league with celebrity ownership.","Macro Tailwind":"Pickleball is the fastest-growing participatory sport in the U.S.","Thesis":"Franchised emerging sports IP appreciates as participation scales.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"PWHL","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Emerging & High-Growth Leagues)","Brief Description":"Professional Women's Hockey League launched 2024; expanding from 6 to 8 teams by 2026-27 season.","Why is this company important?":"Fastest-growing new women's sports league; added Seattle and Vancouver in 2025; backed by NHL infrastructure.","Macro Tailwind":"Women's sports investment surge; NHL infrastructure support accelerates growth curve.","Thesis":"Early-stage scarce IP in fastest-growing sports segment; low entry valuations relative to trajectory.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Early Stage","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Professional Bull Riders","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Emerging & High-Growth Leagues)","Brief Description":"Professional bull riding league operating global live events.","Why is this company important?":"Niche sports IP with touring format and media monetization.","Macro Tailwind":"Alternative sports formats attract loyal live audiences and streaming buyers.","Thesis":"Centralized niche sports IP scales through rights and touring economics.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"WNBA","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Emerging & High-Growth Leagues)","Brief Description":"Top women's professional basketball league in the US, recently signed 11-year $2.2B media deal beginning 2026.","Why is this company important?":"Fastest-appreciating major US sports league; Golden State Valkyries valued at $500M on debut — 10x expansion fee in under 2 years.","Macro Tailwind":"Women's sports media rights surge; Caitlin Clark effect driving record viewership and sponsorship.","Thesis":"Media rights deal tripling current revenue; franchise floor values still at a steep discount to equivalent NBA assets.","Ownership Status":"Private (league-owned)","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"World Surf League","Primary Vertical":"Content / IP","Sub-Segment":"Sports(Emerging & High-Growth Leagues)","Brief Description":"Global professional surfing league operating live tour events.","Why is this company important?":"Owns centralized rights to global surfing competition IP.","Macro Tailwind":"Niche lifestyle sports monetize through media packaging and sponsorship.","Thesis":"Lifestyle-driven sports IP attracts global brand alignment.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"Big 12 Conference","Primary Vertical":"Content / IP","Sub-Segment":"Sports (College Athletics)","Brief Description":"U.S. collegiate athletic conference controlling media rights for member schools.","Why is this company important?":"Conference-level media rights drive billion-dollar broadcast agreements.","Macro Tailwind":"College sports rights inflation and conference realignment.","Thesis":"Conference consolidation increases bargaining power in media negotiations.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Strategic","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"NCAA","Primary Vertical":"Content / IP","Sub-Segment":"Sports (College Athletics)","Brief Description":"Governing body of US college athletics; controls March Madness media rights ($920M ESPN deal through 2032).","Why is this company important?":"March Madness is one of the highest-rated live sports events annually; women's tournament now commands premium rights fees.","Macro Tailwind":"Women's college basketball viewership surge; NIL monetization creates athlete-as-IP layer on top of league rights.","Thesis":"Structurally scarce tournament IP with compounding media rights value; women's bracket now a premium standalone asset.","Ownership Status":"Private (non-profit)","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"SEC (Southeastern Conference)","Primary Vertical":"Content / IP","Sub-Segment":"Sports (College Athletics)","Brief Description":"Premier US college athletics conference; ESPN deal valued at $300M+ annually; adding Texas and Oklahoma in 2024.","Why is this company important?":"Dominant college sports IP; expanded to 16 teams; College Football Playoff expansion drives incremental media value.","Macro Tailwind":"College Football Playoff expansion to 12 teams increases premium content volume; NIL commercializes athlete IP.","Thesis":"Dominant college IP with structural expansion driving rights inflation; CFP deal signals re-rating of college sports value.","Ownership Status":"Private (non-profit)","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Coachella (Goldenvoice / AEG)","Primary Vertical":"Content / IP","Sub-Segment":"Music & Live Performance","Brief Description":"World's most valuable music festival brand; annual Indio, CA event generates estimated $100M+ in revenue.","Why is this company important?":"Defines the premium festival template globally; brand extension into fashion, streaming, and international markets.","Macro Tailwind":"Festival IP commands brand-level scarcity premium; social media amplification extends commercial value beyond gates.","Thesis":"Scarce festival IP with global brand recognition; cannot be replicated — any new festival competes against this benchmark.","Ownership Status":"Private (AEG / Goldenvoice)","Business Model":"Service","Potential Investors":"Strategic","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Hipgnosis Songs Fund","Primary Vertical":"Content / IP","Sub-Segment":"Music & Live Performance","Brief Description":"Music IP investment fund acquiring song catalogs from major artists; listed on London Stock Exchange.","Why is this company important?":"Demonstrates institutionalization of music IP as an asset class; acquired catalogs from Neil Young, Fleetwood Mac, and others.","Macro Tailwind":"Music catalog IP appreciates as streaming compounds royalty income; live performance drives catalog discovery.","Thesis":"Music IP is uncorrelated, royalty-generating asset; live performance tailwinds increase catalog value over time.","Ownership Status":"Public","Business Model":"PE / Fund","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Nederlander Organization","Primary Vertical":"Content / IP","Sub-Segment":"Culture (Comedy / Theater / Art / Immersive IP)","Brief Description":"Broadway theater owner and live theatrical production company.","Why is this company important?":"Controls recurring theatrical IP and venue assets in major markets.","Macro Tailwind":"Premium live theater demand remains resilient in global cities.","Thesis":"Scarce theatrical IP plus venue control sustains pricing power.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Real Estate","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"Arctos Partners","Primary Vertical":"Content / IP","Sub-Segment":"Multi-IP Platforms","Brief Description":"Institutional investment platform holding minority stakes in 25+ professional sports franchises across NFL, NBA, MLB, NHL, MLS, and European leagues. Recently acquired by KKR at $1.4B valuation.","Why is this company important?":"Largest institutional sports franchise investor globally; $7B AUM; only firm approved to hold stakes across all major North American leagues simultaneously.","Macro Tailwind":"PE rule changes open sports franchise ownership to institutional capital; sports AUM growing 20%+ annually.","Thesis":"First-mover institutional platform in a market transitioning from billionaire hobby to institutional asset class; KKR acquisition validates and accelerates the thesis.","Ownership Status":"Private (being acquired by KKR)","Business Model":"PE / Fund","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"City Football Group","Primary Vertical":"Content / IP","Sub-Segment":"Multi-IP Platforms","Brief Description":"Multi-club football ownership group controlling Manchester City and 12 affiliated clubs globally including NYCFC, Melbourne City, and Yokohama F. Marinos.","Why is this company important?":"Largest multi-club ownership model globally; aggregates player development, data, and sponsorship across 13 clubs in multiple top leagues.","Macro Tailwind":"Multi-club ownership creates talent pipeline and operational arbitrage; global soccer rights inflation.","Thesis":"Platform model captures value across leagues, geographies, and sponsorship tiers unavailable to single-club owners.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Fenway Sports Group","Primary Vertical":"Content / IP","Sub-Segment":"Multi-IP Platforms","Brief Description":"Multi-IP sports holding company owning Boston Red Sox, Liverpool FC, Pittsburgh Penguins, and RFK Racing.","Why is this company important?":"One of the most valuable multi-sport IP portfolios; Liverpool alone valued at ~$6B; cross-asset sponsorship and media leverage.","Macro Tailwind":"Global soccer and baseball rights inflation; institutional capital repricing sports assets.","Thesis":"Premium multi-league IP portfolio benefits from simultaneous rights inflation across multiple sports; rare diversified exposure.","Ownership Status":"Private","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Madison Square Garden Sports","Primary Vertical":"Content / IP","Sub-Segment":"Multi-IP Platforms","Brief Description":"Owner of NBA and NHL franchises including Knicks and Rangers.","Why is this company important?":"Controls premium franchise IP in major U.S. media market.","Macro Tailwind":"Top-tier franchise valuations rise due to media rights inflation.","Thesis":"Scarce franchise ownership compounds value via rights and sponsorship leverage.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"RedBird Capital Partners","Primary Vertical":"Content / IP","Sub-Segment":"Multi-IP Platforms","Brief Description":"Sports and media-focused PE firm with stakes in AC Milan, Toulouse FC, Fenway Sports Group, and media properties.","Why is this company important?":"Multi-league, multi-continent sports ownership platform; combines IP ownership with media production and distribution.","Macro Tailwind":"Institutional capital repricing sports franchise values; media rights inflation benefits all IP holders.","Thesis":"Cross-asset sports IP platform captures compounding value from rights inflation and global fanbase expansion.","Ownership Status":"Private","Business Model":"PE / Fund","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"TKO Group Holdings","Primary Vertical":"Content / IP","Sub-Segment":"Multi-IP Platforms","Brief Description":"Parent company of UFC and WWE combining combat sports IP.","Why is this company important?":"Aggregates premium combat IP under one entity with centralized rights leverage.","Macro Tailwind":"Combat sports retain strong global live engagement and broadcast demand.","Thesis":"Combined premium IP increases bargaining power across media and sponsorship.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"}],"2. Physical Infrastructure":[{"Company Name":"AEG (Anschutz Entertainment Group)","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"One of the world's largest venue owners and operators; owns Crypto.com Arena (LA Lakers/Kings), T-Mobile Arena (Las Vegas), The O2 (London), and 300+ venues globally. Also parent of AXS ticketing.","Why is this company important?":"Controls some of the highest-grossing arenas in the world; vertically integrated across venue ownership, ticketing, and live programming.","Macro Tailwind":"Physical venue scarcity premium; premium hospitality and naming rights escalation.","Thesis":"Scarce real asset portfolio with long-term structural moats; naming rights and premium seating revenue compound with live event growth.","Ownership Status":"Private (Philip Anschutz)","Business Model":"Conglomerate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Intuit Dome","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"New NBA arena built for technology-driven premium fan experience.","Why is this company important?":"Represents next-generation arena economics with high-tech integration.","Macro Tailwind":"Aging venue stock drives new arena development focused on premium monetization.","Thesis":"Modern arenas reset per-seat economics via tech and hospitality design.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Legends Global (fmr. ASM Global)","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"World's largest venue management company post-merger; 450+ venues, 20,000 events/yr, 165M+ guests. Formed when Legends acquired ASM Global in 2024.","Why is this company important?":"The dominant global venue operator platform after a $2.4B+ consolidation move. Backed by Sixth Street, NY Yankees, and Jerry Jones family. Operates Real Madrid, SoFi Stadium, FC Barcelona, Chelsea FC, and 300+ others.","Macro Tailwind":"Live event volume growth drives venue management demand; scale consolidation creates pricing power.","Thesis":"Winner-take-most venue ops platform with cross-selling across hospitality, ticketing, naming rights, and sponsorship. Only competitor of scale is OVG.","Ownership Status":"Private (Sixth Street majority)","Business Model":"Service","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"MSG Entertainment","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"Owner and operator of Madison Square Garden, Radio City Music Hall, and the Beacon Theatre; premier live entertainment venue portfolio in NYC.","Why is this company important?":"MSG is the most iconic arena in the world; unique real asset with permanent scarcity in the #1 US market.","Macro Tailwind":"NYC live entertainment demand structurally strong; MSG floor has no equivalent substitute.","Thesis":"Irreplaceable physical asset with permanent scarcity and compounding naming / hospitality economics.","Ownership Status":"Public (NYSE: MSGE)","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Madison Square Garden","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"Flagship arena hosting sports and entertainment.","Why is this company important?":"Scarce prime venue asset with premium inventory.","Macro Tailwind":"Prime venue scarcity supports premium seating and sponsorship.","Thesis":"Irreplaceable venues monetize location scarcity.","Ownership Status":"Public","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Oak View Group","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"Venue developer and arena operator.","Why is this company important?":"Builds modern venue supply influencing event economics.","Macro Tailwind":"Aging venue stock drives CapEx cycle.","Thesis":"New venue builds reset economics via premium inventory.","Ownership Status":"Private","Business Model":"Tech-Enabled Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Populous","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"Architectural firm specializing in sports and live entertainment venues.","Why is this company important?":"Designs revenue-maximizing stadium and arena layouts globally.","Macro Tailwind":"New venue builds emphasize premium inventory and experiential design.","Thesis":"Design firms shape venue economics through premium allocation strategy.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"SoFi Stadium","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"Privately developed NFL stadium and mixed-use entertainment complex.","Why is this company important?":"Represents privately financed mega-venue economics with integrated sponsorship and premium inventory.","Macro Tailwind":"Mega-venue development focuses on premium hospitality and naming rights monetization.","Thesis":"Modern privately financed stadiums maximize sponsorship and premium seat yield.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"The O2","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"Flagship multi-use arena and entertainment district in London.","Why is this company important?":"High-throughput arena asset with premium hospitality inventory.","Macro Tailwind":"Global gateway cities concentrate touring and premium event demand.","Thesis":"Prime urban venue assets sustain pricing power through location scarcity.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Europe","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Tottenham Hotspur Stadium","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"Modern multi-use stadium hosting Premier League NFL and concerts.","Why is this company important?":"Represents next-generation stadium monetization through multi-event programming.","Macro Tailwind":"Stadium economics shift toward year-round diversified event utilization.","Thesis":"Multi-programmable stadiums maximize utilization and premium inventory yield.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"Europe","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Wembley Stadium","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Stadiums & Arenas","Brief Description":"National stadium hosting football finals concerts and global events.","Why is this company important?":"Flagship national venue capturing premium global event demand.","Macro Tailwind":"Global mega-events concentrate demand in iconic venues.","Thesis":"Iconic venues sustain premium pricing through brand and scarcity.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"Europe","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Cosm","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Next-Gen / Immersive Formats","Brief Description":"Immersive shared-reality venue streaming live sports and events in dome environments.","Why is this company important?":"Creates alternative live attendance format without physical event constraints.","Macro Tailwind":"Fans seek communal viewing experiences beyond traditional stadium capacity.","Thesis":"Format innovation expands monetizable attendance beyond physical venue limits.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"Meow Wolf","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Next-Gen / Immersive Formats","Brief Description":"Immersive art experience company with permanent installations in Santa Fe, Las Vegas, Denver, and Grapevine TX.","Why is this company important?":"Leading private operator in the immersive art/experience category; proof that non-sports immersive venues can drive high repeat visitation and premium pricing.","Macro Tailwind":"Experience economy demand for Instagram-worthy, sharable physical environments; Gen Z spending on experiences over things.","Thesis":"Scalable immersive venue format with creative IP moat; captures the intersection of art tourism and the experience economy.","Ownership Status":"Private (VC backed)","Business Model":"Real Estate","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Sphere","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Next-Gen / Immersive Formats","Brief Description":"Immersive venue using LED dome and spatial audio.","Why is this company important?":"Venue format itself drives demand and premium pricing.","Macro Tailwind":"Consumers pay for differentiated spectacle experiences.","Thesis":"Format-driven infrastructure captures pricing power from scarcity.","Ownership Status":"Public","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Sphere Entertainment Co.","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Next-Gen / Immersive Formats","Brief Description":"Owner of the Sphere Las Vegas — world's largest LED screen venue (17,600 seats); $1.2B revenue in 2025; expanding to Abu Dhabi and National Harbor (DC metro).","Why is this company important?":"Revenue up 62% YoY in Q4 2025; ranked #1 grossing venue globally on both Billboard and Pollstar. Proven model being franchised globally.","Macro Tailwind":"Premium physical experiences command pricing premiums digital cannot replicate; immersive venue format attracting both artist residencies and corporate events.","Thesis":"First-mover in immersive venue format with global franchise optionality; each new Sphere location is capital-light for the parent (host cities co-fund construction).","Ownership Status":"Public (NYSE: SPHR)","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Cedar Fair","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Theme Parks & Destination Attractions","Brief Description":"Regional amusement park operator with flagship assets.","Why is this company important?":"Portfolio of high-throughput seasonal assets.","Macro Tailwind":"Experience spend shifts toward regional outings.","Thesis":"Scaled parks monetize recurring seasonal demand.","Ownership Status":"Public","Business Model":"Real Estate","Potential Investors":"MM","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Disney Experiences","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Theme Parks & Destination Attractions","Brief Description":"Theme parks and destination entertainment operator.","Why is this company important?":"Category-leading destination assets with pricing power.","Macro Tailwind":"Premium family travel captures growing leisure budgets.","Thesis":"Iconic IP plus infrastructure drives high per-cap spend.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Merlin Entertainments","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Theme Parks & Destination Attractions","Brief Description":"World's second-largest theme park operator; owns LEGOLAND, Madame Tussauds, SEA LIFE, Alton Towers, and 140+ attractions in 25 countries.","Why is this company important?":"Largest listed theme park operator outside of Disney/Universal; global diversified attraction platform with strong IP licensing in LEGOLAND.","Macro Tailwind":"Global theme park market growing at 6.4% CAGR toward $139B by 2032; international travel recovery driving destination park attendance.","Thesis":"Diversified attraction portfolio with multiple IP brands captures growth across geographies and age demographics.","Ownership Status":"Private (Blackstone, CPPIB, Kirkbi)","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Six Flags Entertainment","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Theme Parks & Destination Attractions","Brief Description":"Regional amusement park operator.","Why is this company important?":"Scaled regional parks monetizing recurring leisure demand.","Macro Tailwind":"Local repeat leisure spend remains durable.","Thesis":"Regional parks capture recurring attendance and upsells.","Ownership Status":"Public","Business Model":"Real Estate","Potential Investors":"MM","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"United Parks & Resorts (SeaWorld)","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Theme Parks & Destination Attractions","Brief Description":"Publicly traded operator of SeaWorld, Busch Gardens, and Aquatica parks across 12 US locations.","Why is this company important?":"Major public equity proxy for the regional theme park category; actively investing in new IP-based attractions following reputation recovery.","Macro Tailwind":"Regional theme park demand structurally resilient; premiumization of guest experience driving per-capita spend growth.","Thesis":"Recovered brand with underappreciated real asset value and growing per-capita spend; potential consolidation target.","Ownership Status":"Public (NYSE: PRKS)","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Universal Destinations & Experiences","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Theme Parks & Destination Attractions","Brief Description":"Theme park and destination attractions operator.","Why is this company important?":"Scaled destination platform monetizing franchises.","Macro Tailwind":"Franchise-driven attractions pull global tourism.","Thesis":"IP-backed destination assets drive repeat visitation.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Activate Games","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Competitive Socializing","Brief Description":"Active gaming venue chain combining physical obstacle rooms with tech-enabled competitive games; expanding rapidly across North America.","Why is this company important?":"Fastest-growing competitive socializing concept by location count; bridges gaming and physical experience in a format with high repeat visitation.","Macro Tailwind":"Gen Z preference for active, tech-enhanced social experiences; gaming culture extending to physical venues.","Thesis":"Differentiated format combining physical activity with gaming — higher energy than mini golf, broader appeal than pure VR.","Ownership Status":"Private (PE backed)","Business Model":"Real Estate","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"Five Iron Golf","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Competitive Socializing","Brief Description":"Indoor golf simulator venue chain with coaching and bar model.","Why is this company important?":"High-frequency repeatable urban format.","Macro Tailwind":"Year-round indoor sports participation demand rises.","Thesis":"Simulator-driven venues scale faster than outdoor real estate-heavy models.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"Flight Club","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Competitive Socializing","Brief Description":"Tech-enabled darts venue chain combining gaming and bar model.","Why is this company important?":"Scalable urban nightlife participatory format.","Macro Tailwind":"Gamified bar experiences replace traditional nightlife formats.","Thesis":"Technology scoring plus hospitality drives high-margin repeat traffic.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Europe","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"Puttshack","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Competitive Socializing","Brief Description":"Tech-infused indoor mini golf co-founded by Topgolf's creators; patented Trackaball scoring system; $250M+ raised; expanding US and UK footprint.","Why is this company important?":"Best-funded direct competitor to Topgolf in the upscale competitive socializing segment; founded by same team with same playbook.","Macro Tailwind":"600+ new competitive socializing locations opened in North America since 2019; category outperforming casual dining.","Thesis":"Second-generation competitive socializing format with proven capital raise trajectory and a clear exit path.","Ownership Status":"Private (PE/VC backed)","Business Model":"Real Estate","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Growth","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Topgolf","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Competitive Socializing","Brief Description":"Golf-based competitive socializing venue chain with integrated food and beverage.","Why is this company important?":"Scalable participatory format generating recurring group traffic.","Macro Tailwind":"Consumers favor social participation over passive attendance.","Thesis":"Hybrid sport-hospitality formats drive high per-cap spend and repeat visits.","Ownership Status":"Public","Business Model":"Real Estate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Cordish Companies","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Mixed-Use / Entertainment Districts","Brief Description":"US developer of large-scale sports-anchored entertainment districts; Live! by Loews brand.","Why is this company important?":"Largest private developer of sports/entertainment districts in the US; Battery Atlanta became profitable within 5 years.","Macro Tailwind":"Sports-anchored mixed-use development pipeline accelerating; municipalities using TIF/tax districts to fund anchor venues.","Thesis":"First-mover in the sports-anchored district model with a repeatable playbook; captures real estate value creation driven by venue anchor.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Hines","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Mixed-Use / Entertainment Districts","Brief Description":"Global real estate developer with major sports-anchored district projects including Tampa Bay Rays ballpark district ($6.5B, 86 acres).","Why is this company important?":"One of the top developers partnering with sports teams on mixed-use districts; brings institutional real estate capital to sports venue development.","Macro Tailwind":"Sports venue as mixed-use anchor is now a proven institutional real estate model; developer pipeline accelerating.","Thesis":"CRE institutional player deploying capital into sports-anchored districts — attracting pension fund and sovereign wealth interest.","Ownership Status":"Private","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"The Battery Atlanta","Primary Vertical":"Physical Infrastructure","Sub-Segment":"Mixed-Use / Entertainment Districts","Brief Description":"Sports-anchored mixed-use district around Truist Park (Atlanta Braves); became profitable within 5 years; hotel, retail, office, and residential integrated.","Why is this company important?":"The most-cited proof of concept for sports-anchored district ROI; referenced in virtually every new district financing pitch deck.","Macro Tailwind":"Sports-anchored districts becoming preferred municipal development model; team ownership of surrounding real estate compounding returns.","Thesis":"Template asset that validates the broader mixed-use district thesis; comparable being used to underwrite similar projects nationwide.","Ownership Status":"Private (Braves/Liberty Media)","Business Model":"Real Estate","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"}],"3. Operators & Distribution":[{"Company Name":"Broadway Across America","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Producer and presenter of touring Broadway productions.","Why is this company important?":"Distributes theatrical IP across secondary U.S. markets.","Macro Tailwind":"Regional markets demand premium touring content without New York travel.","Thesis":"Touring formats expand IP monetization beyond primary urban hubs.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"C3 Presents","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Festival operator behind Lollapalooza.","Why is this company important?":"Runs tentpole festivals with sponsorship and ticket leverage.","Macro Tailwind":"Tentpole festivals capture concentrated leisure budgets.","Thesis":"Scarce festival brands monetize across tickets sponsors and premium inventory.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Strategic","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Cirque du Soleil","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Live entertainment producer operating touring and resident shows.","Why is this company important?":"Scaled repeatable live format with global demand.","Macro Tailwind":"Destination entertainment rebounds and captures premium spend.","Thesis":"Repeatable production IP plus operational scale drives global monetization.","Ownership Status":"Private (PE backed)","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Eventim Live","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Concert promotion arm of CTS Eventim operating across Europe.","Why is this company important?":"Vertically integrates European ticketing with promotion.","Macro Tailwind":"Ticketing platforms move upstream into event promotion.","Thesis":"Integrated ticketing and promotion capture more live event margin.","Ownership Status":"Public","Business Model":"Service","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Europe","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Feld Entertainment","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Producer of touring live family entertainment including Monster Jam and Disney on Ice.","Why is this company important?":"Scalable touring model monetizing family attendance outside major leagues.","Macro Tailwind":"Family-oriented live events remain resilient discretionary spend category.","Thesis":"Owned touring formats capture recurring venue inventory across secondary markets.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Insomniac","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Electronic music festival operator behind EDC.","Why is this company important?":"Category-defining operator with scalable event model.","Macro Tailwind":"Dance music festivals maintain high retention attendance.","Thesis":"Owned festival brands compound through repeat attendance and expansion.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Strategic","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Live Nation","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Concert promoter and venue operator. Owns Ticketmaster.","Why is this company important?":"Controls promotion venues and ticketing. Concentrates pricing power and demand data.","Macro Tailwind":"Live music demand exceeds venue supply. Premium tours capture rising experience spend.","Thesis":"Integrated control captures margin across the live music stack as scarcity drives price.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"OCESA","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Leading concert promoter and live event operator in Latin America.","Why is this company important?":"Regional dominant promoter controlling venue relationships and touring pipeline.","Macro Tailwind":"Emerging market live demand grows as global touring expands.","Thesis":"Regional promoter dominance captures growth in underserved markets.","Ownership Status":"Public","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"Superstruct Entertainment","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Multi-brand festival platform operating across Europe.","Why is this company important?":"Roll-up platform consolidating fragmented festival supply.","Macro Tailwind":"Fragmented festival ecosystem invites consolidation.","Thesis":"Platform ownership extracts efficiencies across talent and sponsorship.","Ownership Status":"Private (PE backed)","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Europe","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"TEG","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Australasian live entertainment and ticketing operator.","Why is this company important?":"Integrated promoter and ticketing platform in Australia and Asia.","Macro Tailwind":"Regional touring growth across Asia-Pacific markets.","Thesis":"Integrated regional platforms capture margin across promotion and ticketing.","Ownership Status":"Private (PE backed)","Business Model":"Conglomerate","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"APAC","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"teamLab","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Promoters & Producers","Brief Description":"Operator of ticketed immersive digital art installations.","Why is this company important?":"Scalable immersive format with destination pull.","Macro Tailwind":"Shareable experiential environments attract tourism demand.","Thesis":"Replicable immersive formats expand across cities.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"AXS","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Primary Ticketing","Brief Description":"Ticketing platform serving arenas and promoters.","Why is this company important?":"Alternative ticketing stack with venue penetration.","Macro Tailwind":"Venues seek better economics and technology.","Thesis":"Challengers win through integrated venue software.","Ownership Status":"Private","Business Model":"Marketplace / Platform","Potential Investors":"Strategic","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"BookMyShow","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Primary Ticketing","Brief Description":"Large-scale ticketing and entertainment platform serving movies sports and live events.","Why is this company important?":"Dominant ticketing gateway in India controlling discovery and transaction flow.","Macro Tailwind":"Rapid growth in urban live entertainment spend across emerging markets.","Thesis":"Scaled distribution platforms capture network effects in high-growth geographies.","Ownership Status":"Private","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"APAC","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"CTS Eventim","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Primary Ticketing","Brief Description":"European ticketing and live entertainment platform.","Why is this company important?":"Dominant ticketing infrastructure across continental Europe.","Macro Tailwind":"Digital ticketing consolidation across fragmented European markets.","Thesis":"Regional ticketing dominance captures fees and demand data at scale.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Europe","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Dice","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Primary Ticketing","Brief Description":"Mobile-first ticketing platform focused on music and club events.","Why is this company important?":"Controls ticketing for independent venues and nightlife operators.","Macro Tailwind":"Independent venues seek alternatives to dominant ticketing incumbents.","Thesis":"Mobile-native ticketing captures long-tail venue relationships.","Ownership Status":"Private (VC backed)","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"Europe","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"Paciolan","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Primary Ticketing","Brief Description":"Ticketing and marketing platform serving colleges and professional teams.","Why is this company important?":"Embedded ticketing stack across collegiate and pro sports.","Macro Tailwind":"Institutions seek data ownership and integrated CRM for fan monetization.","Thesis":"Embedded ticketing infrastructure secures long-term recurring revenue contracts.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"SeatGeek","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Primary Ticketing","Brief Description":"Ticketing platform serving teams and venues.","Why is this company important?":"Modern UX and data tools challenge legacy systems.","Macro Tailwind":"Teams demand better data and pricing tools.","Thesis":"Integrated ticketing increases take rate and retention.","Ownership Status":"Private (VC backed)","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Ticketek","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Primary Ticketing","Brief Description":"Primary ticketing platform across Australia and New Zealand.","Why is this company important?":"Dominant regional ticketing infrastructure with exclusive venue relationships.","Macro Tailwind":"Regional ticketing markets consolidate under long-term venue contracts.","Thesis":"Geographic dominance secures recurring fee capture and venue lock-in.","Ownership Status":"Private","Business Model":"Tech-Enabled Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"APAC","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"Ticketmaster","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Primary Ticketing","Brief Description":"Primary ticketing platform for major live events.","Why is this company important?":"Controls primary ticket distribution and demand data.","Macro Tailwind":"Dynamic pricing expands across premium events.","Thesis":"Primary control monetizes scarcity via fees and data.","Ownership Status":"Public","Business Model":"Marketplace / Platform","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Tixr","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Primary Ticketing","Brief Description":"Enterprise ticketing platform serving festivals and large-scale events.","Why is this company important?":"Competes for high-volume festival and promoter ticketing contracts.","Macro Tailwind":"Promoters seek greater pricing control and ownership of fan data.","Thesis":"White-label enterprise ticketing gains share as promoters push back on incumbents.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"GameTime United","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Secondary Marketplaces","Brief Description":"Mobile-first marketplace selling last-minute sports and concert tickets.","Why is this company important?":"Liquidity layer for distressed ticket inventory.","Macro Tailwind":"Rise of mobile commerce and secondary markets.","Thesis":"If supply density persists, margin per transaction stabilizes.","Ownership Status":"Private","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"MEGAseats","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Secondary Marketplaces","Brief Description":"Marketplace platform selling resale tickets for sports and concerts.","Why is this company important?":"Large-scale resale distribution infrastructure.","Macro Tailwind":"Persistent demand for secondary inventory.","Thesis":"If supply aggregation deepens, network effects strengthen.","Ownership Status":"Private","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"StubHub","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Secondary Marketplaces","Brief Description":"Secondary marketplace for live event tickets.","Why is this company important?":"Captures liquidity and price discovery in scarce events.","Macro Tailwind":"Premium event scarcity drives resale volume.","Thesis":"Resale platforms monetize volatility and demand imbalance.","Ownership Status":"Private (PE backed)","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"TicketSwap","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Secondary Marketplaces","Brief Description":"European peer-to-peer ticket resale platform with price caps.","Why is this company important?":"Trusted resale infrastructure reducing fraud.","Macro Tailwind":"Consumer demand for fair resale pricing.","Thesis":"If trust moat maintained, network effects strengthen.","Ownership Status":"Private","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"Europe","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"Viagogo","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Secondary Marketplaces","Brief Description":"Global secondary ticket marketplace.","Why is this company important?":"Cross-border liquidity for resale at scale.","Macro Tailwind":"Global touring increases cross-border demand.","Thesis":"International scale captures fragmented resale markets.","Ownership Status":"Private","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Vivid Seats","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Secondary Marketplaces","Brief Description":"Secondary marketplace for sports and concerts.","Why is this company important?":"Scaled resale platform monetizing scarcity.","Macro Tailwind":"Dynamic pricing normalizes resale behavior.","Thesis":"Liquidity compounds via repeat transactions.","Ownership Status":"Public","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Eventbrite","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Discovery & Curation","Brief Description":"Event listing and ticketing for long-tail events.","Why is this company important?":"Aggregates fragmented supply and lowers creation friction.","Macro Tailwind":"Growth of local community experiences expands supply.","Thesis":"Long-tail aggregation captures fees and demand data.","Ownership Status":"Public","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Fever","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Discovery & Curation","Brief Description":"Global live experience discovery and ticketing platform.","Why is this company important?":"Aggregates fragmented experiential supply into curated demand channels.","Macro Tailwind":"Urban consumers rely on digital curation for offline leisure decisions.","Thesis":"Discovery control captures demand flow before ticket transaction occurs.","Ownership Status":"Private (VC backed)","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Songkick","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Discovery & Curation","Brief Description":"Concert discovery platform integrating with ticket sales partners.","Why is this company important?":"Top-of-funnel demand driver for ticket transactions.","Macro Tailwind":"Consumer shift toward personalized event discovery.","Thesis":"If affiliate relationships deepen, revenue scales with traffic.","Ownership Status":"Private","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"Amazon Prime Video","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Media Rights & Distribution","Brief Description":"Streaming platform with major live sports rights.","Why is this company important?":"Uses live rights to drive retention and advertising.","Macro Tailwind":"Advertising shifts toward premium live inventory.","Thesis":"Scaled platforms pay for scarcity to lock audience.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Apple TV","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Media Rights & Distribution","Brief Description":"Streaming platform acquiring select sports rights.","Why is this company important?":"Well-capitalized entrant increasing rights competition.","Macro Tailwind":"Platform competition drives rights escalation.","Thesis":"Capitalized entrants inflate live sports valuation.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"DAZN","Primary Vertical":"Operators / Access / Distribution","Sub-Segment":"Media Rights & Distribution","Brief Description":"Sports streaming platform acquiring live rights.","Why is this company important?":"Rights buyer shaping global sports distribution.","Macro Tailwind":"Streaming competition increases rights inflation.","Thesis":"New bidders reprice live rights upward.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"}],"4. Service Providers":[{"Company Name":"Creative Artists Agency (CAA)","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Talent Representation","Brief Description":"World's largest talent and sports agency; $20B+ in total athlete contracts under management; acquired ICM Partners in 2022; majority stake sold to Artémis (Pinault family) at ~$7B valuation in 2023.","Why is this company important?":"#1 sports agency by every metric; 12 NFL first-round picks in 2024 alone; $5B in non-playing branding deals. The benchmark against which all others are measured.","Macro Tailwind":"Athlete-as-media-brand trend drives non-playing contract growth; NIL monetization creates new budget line items at agencies.","Thesis":"Dominant platform capturing value from both playing contracts (leveraged to media rights inflation) and brand/content deals (leveraged to athlete media growth).","Ownership Status":"Private (Artémis majority, TPG minority)","Business Model":"Service","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Endeavor Group Holdings","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Talent Representation","Brief Description":"Sports and entertainment holding company owning UFC IMG and WME.","Why is this company important?":"Controls talent representation media rights sales and live IP monetization.","Macro Tailwind":"Consolidation of sports talent and media rights increases negotiating leverage.","Thesis":"Platform ownership across talent and IP enables centralized value capture.","Ownership Status":"Public","Business Model":"Conglomerate","Potential Investors":"Strategic","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Excel Sports Management","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Talent Representation","Brief Description":"Multi-sport agency managing $6.56B in playing contracts and $3.5B in branding deals; clients include Nikola Jokić and Caitlin Clark; Goldman Sachs recently took majority stake at ~$1B valuation.","Why is this company important?":"Goldman Sachs institutional validation of the sports agency as an investable asset class. Caitlin Clark as a client is the highest-value women's athlete deal in agency history.","Macro Tailwind":"Institutional capital entering sports services; women's athlete endorsement deals approaching parity with men's for top-tier talent.","Thesis":"Goldman deal proves agency equity is an institutional asset class; compounding value from playing contract commissions + brand deals creates durable cash flow.","Ownership Status":"Private (Goldman Sachs majority)","Business Model":"Service","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Octagon","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Talent Representation","Brief Description":"Global sports and entertainment agency (part of IPG); talent clients include Stephen Curry, Simone Biles, and Coco Gauff; $463M max commissions (Forbes 2025, up 119% in 3 years).","Why is this company important?":"Fastest commission growth of any top-5 agency; dual model combining talent rep with corporate brand consulting creates unique two-sided market position.","Macro Tailwind":"Corporate sports sponsorship growing alongside media rights; Olympic sports and women's athletics driving new client pipeline.","Thesis":"IPG ownership provides institutional scale and brand relationships; two-sided talent + brand model captures more value per relationship than pure rep shops.","Ownership Status":"Private (IPG subsidiary)","Business Model":"Service","Potential Investors":"Strategic","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Roc Nation Sports","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Talent Representation","Brief Description":"Sports division of Jay-Z's Roc Nation; ~$2B in player salaries and $500M in sponsorships; represents Saquon Barkley, LaMelo Ball.","Why is this company important?":"Cultural cachet creates differentiated client acquisition — athletes choose Roc Nation for brand building, not just contract negotiation.","Macro Tailwind":"Athlete-as-brand trend plays directly to Roc Nation's entertainment DNA; international soccer expansion taps growing global representation market.","Thesis":"Culture-first positioning creates a moat that pure sports shops can't replicate; international soccer expansion extends TAM significantly.","Ownership Status":"Private (Jay-Z / UTA-affiliated)","Business Model":"Service","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"United Talent Agency (UTA)","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Talent Representation","Brief Description":"Major talent and sports agency; parent of Klutch Sports Group (LeBron James, Caitlin Clark); acquired ROOF soccer agency in 2024 for European expansion.","Why is this company important?":"Klutch Sports alone manages 252% commission growth over three years; Caitlin Clark as a client exemplifies the women's sports crossover opportunity.","Macro Tailwind":"Women's sports and NIL creating new high-growth client categories; athlete content deals expanding faster than playing contracts.","Thesis":"Klutch gives UTA a structural position in the NBA's most commercially powerful athletes; European soccer expansion via ROOF adds global scale.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"WME Sports","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Talent Representation","Brief Description":"Sports talent agency negotiating sponsorship and media deals.","Why is this company important?":"Controls athlete representation and brand monetization pipelines.","Macro Tailwind":"Athlete-driven brand deals expand with NIL and social reach.","Thesis":"Representation firms monetize expanding athlete brand equity.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Strategic","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Wasserman Music","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Talent Representation","Brief Description":"Music talent agency representing touring artists.","Why is this company important?":"Controls touring pipeline through artist representation leverage.","Macro Tailwind":"Artist leverage increases as touring becomes primary revenue source.","Thesis":"Agencies capture leverage as touring replaces recorded revenue.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"Aramark Sports + Entertainment","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Premium Hospitality & Revenue Services","Brief Description":"Sports hospitality division of Aramark; food, beverage, and retail services at major sports venues including stadiums, arenas, and collegiate athletic facilities across North America.","Why is this company important?":"Third major player in stadium F&B alongside Sodexo and Delaware North; public company providing direct equity access to the venue hospitality theme.","Macro Tailwind":"Sports venue F&B premiumization; college athletics hospitality growth driven by NIL era fan engagement.","Thesis":"Public equity proxy for the venue hospitality segment; beneficiary of new stadium openings and per-cap spending growth.","Ownership Status":"Public (NASDAQ: ARMK)","Business Model":"Service","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Delaware North","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Premium Hospitality & Revenue Services","Brief Description":"US-based sports and entertainment hospitality company; concessions and premium services at 50+ major stadiums.","Why is this company important?":"One of the original and largest sports venue hospitality operators in the US; concessions partner with Buffalo Bills since 1992 and many major franchises.","Macro Tailwind":"New stadium build cycle creates venue hospitality contract pipeline; per-cap spending growth as fans trade up to premium options.","Thesis":"Long-duration venue contracts create captive recurring revenue; new stadium openings trigger competitive re-bids that reset contract values upward.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Legends","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Premium Hospitality & Revenue Services","Brief Description":"Premium seating and sponsorship services firm.","Why is this company important?":"Monetizes venues via hospitality and brand partnerships.","Macro Tailwind":"Premium seating demand rises with wealth concentration.","Thesis":"Service platforms extract incremental revenue per attendee.","Ownership Status":"Private","Business Model":"Tech-Enabled Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"On Location","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Premium Hospitality & Revenue Services","Brief Description":"Premium hospitality provider for major events.","Why is this company important?":"Captures high-margin VIP demand around marquee events.","Macro Tailwind":"Wealth polarization increases willingness to pay for access.","Thesis":"Scarce event access supports premium packaging upsell.","Ownership Status":"Private","Business Model":"Tech-Enabled Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Sodexo Live!","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Premium Hospitality & Revenue Services","Brief Description":"Global sports and live events hospitality division of Sodexo; 15+ Super Bowls, Olympics catering, Formula 1, Rugby World Cup; 300+ venues across North America and Europe.","Why is this company important?":"One of the two largest venue F&B and hospitality operators globally; $45B+ global sports hospitality market with 15%+ CAGR.","Macro Tailwind":"Sports hospitality market growing at 15.5% CAGR toward $74B by 2036; premiumization of food & beverage at venues driving per-cap spending.","Thesis":"Recurring multi-year venue contracts provide durable revenue base; premium F&B at events is one of the fastest-growing margin drivers for venue operators.","Ownership Status":"Public (Sodexo parent, EPA: SW)","Business Model":"Service","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Encore","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Event Production & Operations","Brief Description":"Audio-visual production services for venues.","Why is this company important?":"Core production layer enabling execution quality.","Macro Tailwind":"Premium experiences demand higher production standards.","Thesis":"Scaled providers capture recurring venue spend.","Ownership Status":"Private (PE backed)","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"NEP Group","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Event Production & Operations","Brief Description":"Live production services for broadcast and events.","Why is this company important?":"Critical infrastructure for capturing live sports.","Macro Tailwind":"Streaming and alternate feeds increase production complexity.","Thesis":"More distribution endpoints require greater production capacity.","Ownership Status":"Private (PE backed)","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"PRG","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Event Production & Operations","Brief Description":"Lighting audio and staging production for tours.","Why is this company important?":"High-end production capability for stadium tours.","Macro Tailwind":"Spectacle formats increase technical production spend.","Thesis":"Complexity shifts spend to scaled specialists.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Populous","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Event Production & Operations","Brief Description":"World's leading sports and entertainment venue design and architecture firm; designed SoFi Stadium, Tottenham Hotspur Stadium, Allegiant Stadium, and dozens of the world's most iconic venues.","Why is this company important?":"Every major stadium built in the last decade ran through Populous. The pipeline of new stadium construction guarantees multi-year revenue visibility.","Macro Tailwind":"Stadium construction supercycle driven by aging venues, new franchise awards, and international sports events (2026 World Cup, 2028 Olympics).","Thesis":"Design IP and relationship moat in a capital-intensive, long-duration contract business; multi-year project backlog provides earnings visibility.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"TAIT","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Event Production & Operations","Brief Description":"Global live event production engineering company; custom stage and automation systems for major tours, ceremonies, and brand experiences. Built stages for Taylor Swift, Beyoncé, NFL Super Bowl halftime shows.","Why is this company important?":"The engineering backbone behind the world's most technically complex live productions. No equivalent competitor at this technical level.","Macro Tailwind":"Stadium-scale touring requiring increasingly complex technical production; event spectacle arms race drives demand for custom engineering.","Thesis":"Technical complexity moat — very few companies globally can execute at this level; long-term client relationships with A-list artists create recurring pipeline.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"IMG","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Sponsorship & Brand Agencies","Brief Description":"Sports marketing and media rights agency.","Why is this company important?":"Intermediates sponsorship and rights deals.","Macro Tailwind":"Brands shift budgets toward live sports inventory.","Thesis":"Agency platforms capture rising sponsorship spend.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Strategic","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Sportfive","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Sponsorship & Brand Agencies","Brief Description":"Global sports rights and marketing agency managing media rights and sponsorships for 2,000+ rights holders including UEFA, Bundesliga clubs, and Olympic federations.","Why is this company important?":"One of the largest sports rights intermediaries globally; manages the commercial relationships between rights holders and brands at scale.","Macro Tailwind":"Global sports rights inflation drives commercial revenues of rights holders, all of which flow through agencies like Sportfive.","Thesis":"Structural intermediary in the sports rights ecosystem; revenue tied to total rights value under management, which grows with overall market.","Ownership Status":"Private (Lagardère Sports spinoff, PE-backed)","Business Model":"Service","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Two Circles","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Sponsorship & Brand Agencies","Brief Description":"Data-driven sports marketing agency; fan data analytics, commercial strategy, and sponsorship valuation for rights holders including Premier League clubs, NFL teams, and world governing bodies.","Why is this company important?":"Best-in-class data platform for sports commercial strategy; growing category of data-led sponsorship as brands demand ROI measurement.","Macro Tailwind":"Data analytics becoming mandatory in sponsorship; rights holders under pressure to demonstrate commercial value to retain/grow sponsors.","Thesis":"Sticky SaaS-like model embedded in rights holders' commercial operations; data moat compounds as more events and seasons generate proprietary fan datasets.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Growth","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Wasserman","Primary Vertical":"Service Providers / Agencies","Sub-Segment":"Sponsorship & Brand Agencies","Brief Description":"Global sports, entertainment and culture agency; 65+ city offices; 2,000+ athletes; brand consulting division advises Microsoft, PepsiCo; $956M max commissions (Forbes 2025).","Why is this company important?":"#2 agency globally behind CAA by contract value; brand consulting division advises corporations on sports strategy. 10+ acquisitions in two years including CSM Sport & Entertainment.","Macro Tailwind":"Corporate sports sponsorship market growing at 7%+ CAGR; brands need integrated agency partners spanning talent + sponsorship + analytics.","Thesis":"Full-service model captures fees at every stage of the sports marketing value chain; CSM acquisition accelerated European and global scale.","Ownership Status":"Private","Business Model":"Service","Potential Investors":"Sovereign / Institutional","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"}],"5. Technology Enablers":[{"Company Name":"Digonex","Primary Vertical":"Technology Enablers","Sub-Segment":"Sports Data & Betting Infrastructure","Brief Description":"Dynamic pricing software for live event ticketing.","Why is this company important?":"Optimizes ticket yield through real-time price adjustment.","Macro Tailwind":"Ticket pricing shifts toward airline-style yield management.","Thesis":"Pricing intelligence layers capture incremental margin without adding inventory.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"Genius Sports","Primary Vertical":"Technology Enablers","Sub-Segment":"Sports Data & Betting Infrastructure","Brief Description":"Sports data provider connecting leagues and betting.","Why is this company important?":"Official data layer monetizing betting integration.","Macro Tailwind":"Leagues commercialize official data feeds.","Thesis":"Official data rights become recurring revenue.","Ownership Status":"Public","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"High"},{"Company Name":"Hawk-Eye Innovations","Primary Vertical":"Technology Enablers","Sub-Segment":"Sports Data & Betting Infrastructure","Brief Description":"Ball-tracking and officiating technology used globally.","Why is this company important?":"Embedded officiating infrastructure in major sports leagues.","Macro Tailwind":"Sports leagues adopt tech-assisted officiating.","Thesis":"Embedded officiating tech creates durable contracted revenue.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Strategic","Investment Accessibility":"Not Investable / Reference Only","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Sportradar","Primary Vertical":"Technology Enablers","Sub-Segment":"Sports Data & Betting Infrastructure","Brief Description":"Sports data and integrity services provider.","Why is this company important?":"Monetizes sports consumption via betting-linked data.","Macro Tailwind":"Legalized betting expands demand for real-time data.","Thesis":"Data toll layer captures value as betting grows.","Ownership Status":"Public","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"Public Equity","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"LiveLike","Primary Vertical":"Technology Enablers","Sub-Segment":"Fan Engagement & Fandom Technology","Brief Description":"Interactive fan engagement platform for live sports broadcasts.","Why is this company important?":"Adds gamification and real-time interaction to live viewing.","Macro Tailwind":"Younger audiences demand interactive second-screen participation.","Thesis":"Engagement overlays increase retention and monetizable fan data.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Venture","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"Fortress (London)","Primary Vertical":"Technology Enablers","Sub-Segment":"Venue & Event Operations Technology","Brief Description":"Fan engagement and venue operations software integrating ticketing and automated access control.","Why is this company important?":"Core monetization and access infrastructure for live sports venues.","Macro Tailwind":"Venues modernizing ticketing and access systems.","Thesis":"If integrated stacks replace fragmented systems, switching costs increase.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Europe","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"Fortress GB","Primary Vertical":"Technology Enablers","Sub-Segment":"Venue & Event Operations Technology","Brief Description":"AI crowd analytics and security monitoring for live venues.","Why is this company important?":"Improves safety compliance and operational efficiency.","Macro Tailwind":"Venue risk management intensifies across major events.","Thesis":"Operational analytics reduces liability and enhances event throughput.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Venture","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Europe","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"VenueNext","Primary Vertical":"Technology Enablers","Sub-Segment":"Venue & Event Operations Technology","Brief Description":"Mobile ordering and venue commerce software for live venues.","Why is this company important?":"Enables frictionless in-seat ordering and data capture.","Macro Tailwind":"Cashless and mobile-first venue transactions accelerate.","Thesis":"Commerce infrastructure increases revenue per attendee.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"YinzCam","Primary Vertical":"Technology Enablers","Sub-Segment":"Venue & Event Operations Technology","Brief Description":"Mobile app infrastructure for sports teams and stadiums.","Why is this company important?":"Controls in-venue digital fan interface layer.","Macro Tailwind":"Teams integrate mobile ordering ticketing and loyalty into single apps.","Thesis":"Owning the in-stadium digital layer increases per-cap monetization.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"North America","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"Deltatre","Primary Vertical":"Technology Enablers","Sub-Segment":"Content Capture & Production Technology","Brief Description":"Digital and OTT technology provider for sports rights holders.","Why is this company important?":"Builds streaming and fan engagement infrastructure for major leagues.","Macro Tailwind":"Rights holders internalize digital distribution and data capture.","Thesis":"Backend streaming infrastructure captures recurring value as leagues go DTC.","Ownership Status":"Private","Business Model":"Tech-Enabled Service","Potential Investors":"MM","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Challenger","Data Confidence":"Medium"},{"Company Name":"EVS","Primary Vertical":"Technology Enablers","Sub-Segment":"Content Capture & Production Technology","Brief Description":"Live replay and sports production systems provider.","Why is this company important?":"Infrastructure for high-quality replay and highlights.","Macro Tailwind":"Highlight consumption extends live engagement.","Thesis":"Replay infrastructure gains value as clip volume rises.","Ownership Status":"Public","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"Public Equity","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"PlayOn Sports","Primary Vertical":"Technology Enablers","Sub-Segment":"Content Capture & Production Technology","Brief Description":"Streaming and media platform for high school sports events.","Why is this company important?":"Digitizes long-tail live sports inventory previously unmonetized.","Macro Tailwind":"Local sports communities adopt streaming for access and archival viewing.","Thesis":"Infrastructure capturing long-tail inventory expands monetizable sports supply.","Ownership Status":"Private","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Dominant","Data Confidence":"Medium"},{"Company Name":"Ross Video","Primary Vertical":"Technology Enablers","Sub-Segment":"Content Capture & Production Technology","Brief Description":"Live production hardware and software provider.","Why is this company important?":"Enables real-time sports production workflows.","Macro Tailwind":"More live content increases tooling demand.","Thesis":"Workflow infrastructure captures value as output expands.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Fanatics","Primary Vertical":"Technology Enablers","Sub-Segment":"Sponsorship, Commerce & Monetization Technology","Brief Description":"Licensed sports merchandise platform.","Why is this company important?":"Controls licensed commerce across leagues.","Macro Tailwind":"Direct-to-consumer fandom spend increases ARPU.","Thesis":"Centralized merchandising captures year-round monetization.","Ownership Status":"Private","Business Model":"Marketplace / Platform","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Large Cap","Geography":"Global","Competitive Position":"Dominant","Data Confidence":"High"},{"Company Name":"Kraft Analytics Group","Primary Vertical":"Technology Enablers","Sub-Segment":"Sponsorship, Commerce & Monetization Technology","Brief Description":"Enterprise data management, advanced analytics, and marketing automation platform for sports and entertainment organizations.","Why is this company important?":"Embedded commercial intelligence layer for professional teams and venues.","Macro Tailwind":"Increasing demand for data-driven sponsorship and ticket optimization.","Thesis":"If integrated deeply into CRM and revenue ops, switching costs become meaningful.","Ownership Status":"Private (PE backed)","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"PE / Private Fund","Stage / Scale":"Mid Market","Geography":"North America","Competitive Position":"Niche","Data Confidence":"Medium"},{"Company Name":"Monterosa","Primary Vertical":"Technology Enablers","Sub-Segment":"Sponsorship, Commerce & Monetization Technology","Brief Description":"Platform powering large-scale real-time interaction during live broadcasts and events.","Why is this company important?":"Engagement layer enhancing monetization of live content.","Macro Tailwind":"Broadcasts integrating interactive overlays.","Thesis":"If interactive data improves retention and sponsorship value, enterprise contracts endure.","Ownership Status":"Private","Business Model":"Software","Potential Investors":"Growth","Investment Accessibility":"Venture","Stage / Scale":"Growth","Geography":"Europe","Competitive Position":"Niche","Data Confidence":"Medium"}]};
+
+const LAYERS = [
+  { key: '1. Content & IP', label: 'Content & IP', short: '1 · Content & IP' },
+  { key: '2. Physical Infrastructure', label: 'Physical Infrastructure', short: '2 · Physical Infrastructure' },
+  { key: '3. Operators & Distribution', label: 'Operators & Distribution', short: '3 · Operators & Distribution' },
+  { key: '4. Service Providers', label: 'Service Providers', short: '4 · Service Providers' },
+  { key: '5. Technology Enablers', label: 'Technology Enablers', short: '5 · Technology Enablers' },
+];
+
+let activeFilters = new Set(['Public Equity', 'PE / Private Fund', 'Venture', 'Not Investable / Reference Only']);
+let activeLayer = 'all';
+let searchQuery = '';
+
+function getInitials(name) {
+  return name.split(/\s+/).filter(w => w.length > 2).slice(0, 2).map(w => w[0].toUpperCase()).join('') || name.slice(0,2).toUpperCase();
+}
+
+function accessClass(access) {
+  if (access === 'Public Equity') return 'access-pub';
+  if (access === 'PE / Private Fund') return 'access-pe';
+  if (access === 'Venture') return 'access-vc';
+  return 'access-ref';
+}
+
+function accessShort(access) {
+  if (access === 'Public Equity') return 'PUBLIC';
+  if (access === 'PE / Private Fund') return 'PE';
+  if (access === 'Venture') return 'VC';
+  return 'REF';
+}
+
+function buildGrid() {
+  const container = document.getElementById('gridContainer');
+  container.innerHTML = '';
+
+  LAYERS.forEach((layer, li) => {
+    if (activeLayer !== 'all' && String(li) !== activeLayer) return;
+
+    const companies = DB[layer.key] || [];
+    // Group by sub-segment
+    const segs = {};
+    companies.forEach(c => {
+      const seg = c['Sub-Segment'] || 'Other';
+      if (!segs[seg]) segs[seg] = [];
+      segs[seg].push(c);
+    });
+
+    // Layer header
+    const lh = document.createElement('div');
+    lh.className = 'layer-group-header';
+    lh.innerHTML = `<span class="layer-num">${li+1}</span> ${layer.label.toUpperCase()}`;
+    container.appendChild(lh);
+
+    Object.entries(segs).forEach(([seg, comps]) => {
+      const section = document.createElement('div');
+      section.className = 'segment-section';
+      section.dataset.layer = li;
+
+      const headerCol = document.createElement('div');
+      headerCol.className = 'segment-header-col';
+      headerCol.innerHTML = `
+        <div class="segment-name">${seg.replace('Sports(', '').replace(')', '').replace('Sports (', '').replace(')', '')}</div>
+        <div class="segment-count" id="segcount-${li}-${seg.replace(/\W/g,'')}">${comps.length} cos</div>
+      `;
+
+      const companiesCol = document.createElement('div');
+      companiesCol.className = 'companies-col';
+
+      comps.forEach(c => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.dataset.access = c['Investment Accessibility'] || '';
+        chip.dataset.name = (c['Company Name'] || '').toLowerCase();
+        chip.dataset.layer = li;
+
+        const isVisible = activeFilters.has(c['Investment Accessibility']) &&
+          (searchQuery === '' || (c['Company Name'] || '').toLowerCase().includes(searchQuery));
+        if (!isVisible) chip.classList.add('hidden');
+
+        chip.innerHTML = `
+          <span class="chip-initials">${getInitials(c['Company Name'] || '')}</span>
+          <span class="chip-name">${c['Company Name']}</span>
+          <span class="chip-badge">${accessShort(c['Investment Accessibility'])}</span>
+          <span class="chip-dot"></span>
+        `;
+        chip.addEventListener('click', () => openDetail(c));
+        companiesCol.appendChild(chip);
+      });
+
+      section.appendChild(headerCol);
+      section.appendChild(companiesCol);
+      container.appendChild(section);
+    });
+  });
+
+  updateCount();
+}
+
+function updateCount() {
+  const allChips = document.querySelectorAll('.chip');
+  const visible = document.querySelectorAll('.chip:not(.hidden)');
+  document.getElementById('visibleCount').textContent = visible.length;
+  document.getElementById('countBadge').innerHTML = `<span id="visibleCount">${visible.length}</span> / ${allChips.length} companies`;
+
+  // Hide empty segments
+  document.querySelectorAll('.segment-section').forEach(sec => {
+    const visChips = sec.querySelectorAll('.chip:not(.hidden)');
+    sec.style.display = visChips.length === 0 ? 'none' : '';
+  });
+
+  // Hide empty layer headers
+  document.querySelectorAll('.layer-group-header').forEach(lh => {
+    let next = lh.nextElementSibling;
+    let hasVisible = false;
+    while (next && !next.classList.contains('layer-group-header')) {
+      if (next.style.display !== 'none') { hasVisible = true; break; }
+      next = next.nextElementSibling;
+    }
+    lh.style.display = hasVisible ? '' : 'none';
+  });
+
+  const noRes = document.getElementById('noResults');
+  noRes.style.display = visible.length === 0 ? 'block' : 'none';
+}
+
+function applyFilters() {
+  document.querySelectorAll('.chip').forEach(chip => {
+    const access = chip.dataset.access;
+    const name = chip.dataset.name;
+    const layerIdx = chip.dataset.layer;
+    const layerMatch = activeLayer === 'all' || String(layerIdx) === activeLayer;
+    const filterMatch = activeFilters.has(access);
+    const searchMatch = searchQuery === '' || name.includes(searchQuery);
+    chip.classList.toggle('hidden', !(layerMatch && filterMatch && searchMatch));
+  });
+
+  document.querySelectorAll('.segment-section').forEach(sec => {
+    const layerIdx = sec.dataset.layer;
+    const layerMatch = activeLayer === 'all' || String(layerIdx) === activeLayer;
+    sec.style.display = layerMatch ? '' : 'none';
+  });
+
+  updateCount();
+}
+
+function openDetail(c) {
+  document.getElementById('dName').textContent = c['Company Name'] || '';
+
+  const meta = document.getElementById('dMeta');
+  const accessCls = accessClass(c['Investment Accessibility']);
+  meta.innerHTML = `
+    <span class="meta-pill ${accessCls}">${c['Investment Accessibility'] || ''}</span>
+    <span class="meta-pill">${c['Stage / Scale'] || ''}</span>
+    <span class="meta-pill">${c['Geography'] || ''}</span>
+    <span class="meta-pill">${c['Ownership Status'] || ''}</span>
+  `;
+
+  document.getElementById('dSubseg').textContent = `${c['Primary Vertical']} · ${c['Sub-Segment']}`;
+
+  const body = document.getElementById('dBody');
+  const compClass = (c['Competitive Position'] || '').toLowerCase();
+  const confClass = (c['Data Confidence'] || '') === 'High' ? 'high-conf' : (c['Data Confidence'] || '') === 'Medium' ? 'med-conf' : 'low-conf';
+
+  body.innerHTML = `
+    <div>
+      <div class="detail-section-label">Description</div>
+      <div class="detail-description">${c['Brief Description'] || '—'}</div>
+    </div>
+    <div class="detail-block">
+      <div class="label">Why Important</div>
+      <div class="value">${c['Why is this company important?'] || '—'}</div>
+    </div>
+    <div class="detail-block">
+      <div class="label">Macro Tailwind</div>
+      <div class="value">${c['Macro Tailwind'] || '—'}</div>
+    </div>
+    <div class="detail-block">
+      <div class="label">Investment Thesis</div>
+      <div class="value">${c['Thesis'] || '—'}</div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-stat">
+        <div class="stat-label">Competitive Position</div>
+        <div class="stat-value ${compClass}">${c['Competitive Position'] || '—'}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="stat-label">Data Confidence</div>
+        <div class="stat-value ${confClass}">${c['Data Confidence'] || '—'}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="stat-label">Business Model</div>
+        <div class="stat-value">${c['Business Model'] || '—'}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="stat-label">Potential Investors</div>
+        <div class="stat-value">${c['Potential Investors'] || '—'}</div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('detailOverlay').classList.add('open');
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('open');
+  document.getElementById('detailPanel').classList.remove('open');
+}
+
+// Filter buttons
+document.getElementById('filters').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  const f = btn.dataset.filter;
+  if (activeFilters.has(f)) {
+    if (activeFilters.size > 1) { activeFilters.delete(f); btn.classList.remove('active'); }
+  } else {
+    activeFilters.add(f); btn.classList.add('active');
+  }
+  applyFilters();
+});
+
+// Layer tabs
+document.getElementById('layerTabs').addEventListener('click', e => {
+  const tab = e.target.closest('.layer-tab');
+  if (!tab) return;
+  document.querySelectorAll('.layer-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  activeLayer = tab.dataset.layer;
+  buildGrid();
+});
+
+// Search
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  applyFilters();
+});
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDetail();
+});
+
+// Init
+buildGrid();
+</script>
+</body>
+</html>

@@ -1,1 +1,62 @@
-[]
+[
+  {
+    "id": "b39dce1f281c",
+    "date": "2026-03",
+    "headline": "March Madness Expansion Would Mean Big Changes to First Four",
+    "company": "",
+    "layer": 0,
+    "access": "pe",
+    "source": "Front Office Sports",
+    "url": "https://frontofficesports.com/march-madness-expansion-would-mean-big-changes-to-first-four/",
+    "score": 8,
+    "scraped_at": "2026-03-18T01:08:04.831074+00:00"
+  },
+  {
+    "id": "3ab4a0525c55",
+    "date": "2026-03",
+    "headline": "Record 25 NFL Players Earn $1 Million in Performance Pay",
+    "company": "NFL",
+    "layer": 0,
+    "access": "pe",
+    "source": "Front Office Sports",
+    "url": "https://frontofficesports.com/25-nfl-players-1-million-merit-based-pay/",
+    "score": 7,
+    "scraped_at": "2026-03-18T01:08:04.832725+00:00"
+  },
+  {
+    "id": "c14d7b001385",
+    "date": "2026-03",
+    "headline": "March Madness Broadcast Rights Top $1 Billion for First Time",
+    "company": "",
+    "layer": 0,
+    "access": "pe",
+    "source": "Sportico",
+    "url": "https://www.sportico.com/leagues/college-sports/2026/march-madness-broadcast-rights-billion-cbs-turner-1234887499/",
+    "score": 8,
+    "scraped_at": "2026-03-18T01:08:05.004023+00:00"
+  },
+  {
+    "id": "06159d938d8c",
+    "date": "2026-03",
+    "headline": "The Rebuilt Pac-12 Will Sell Its Data to Sportsbooks",
+    "company": "",
+    "layer": 4,
+    "access": "public",
+    "source": "Sportico",
+    "url": "https://www.sportico.com/business/sports-betting/2026/pac-12-conference-betting-data-genius-sports-partnership-1234887433/",
+    "score": 8,
+    "scraped_at": "2026-03-18T01:08:05.004700+00:00"
+  },
+  {
+    "id": "14f3fa5d58bf",
+    "date": "2026-03",
+    "headline": "Live Nation Trial: As States Press On In Court, Lawmakers Push For Change On Capitol Hill",
+    "company": "Live Nation",
+    "layer": 2,
+    "access": "public",
+    "source": "Pollstar News",
+    "url": "https://news.pollstar.com/2026/03/17/live-nation-trial-as-states-press-on-in-court-lawmakers-push-for-change-on-capitol-hill/",
+    "score": 6,
+    "scraped_at": "2026-03-18T01:08:07.049559+00:00"
+  }
+]
